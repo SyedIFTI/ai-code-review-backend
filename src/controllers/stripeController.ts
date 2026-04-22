@@ -41,8 +41,8 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
                 }
             ],
             mode: 'subscription',
-            success_url: `http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `http://localhost:5173/cancel`,
+            success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}/cancel`,
         })
         sendSuccessResponse(res, { url: session.url }, 'Checkout session created successfully', 200);
     } catch (error) {
@@ -61,7 +61,7 @@ export const createCustomerPortalSession = async (req: Request, res: Response) =
 
         const session = await stripe.billingPortal.sessions.create({
             customer: customerId,
-            return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/subscription`,
+            return_url: `${process.env.FRONTEND_URL}/subscription`,
         });
 
         sendSuccessResponse(res, { url: session.url }, 'Customer portal created', 200);
