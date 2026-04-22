@@ -75,15 +75,20 @@ console.log("providerId",providerId)
 
         res.cookie('accessToken', customAccessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',  // ← true on production
+            sameSite: process.env.NODE_ENV === 'production' 
+            ? 'none'   // ← MUST be 'none' for cross-origin (Vercel → Render)
+            : 'lax',   // ← lax is fine for local
+
             maxAge: 15 * 60 * 1000
         });
 
         res.cookie('refreshToken', customRefreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',  // ← true on production
+            sameSite: process.env.NODE_ENV === 'production' 
+            ? 'none'   // ← MUST be 'none' for cross-origin (Vercel → Render)
+            : 'lax',   // ← lax is fine for local
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
  console.log("Token generated")
@@ -156,7 +161,14 @@ export const RemoveToken = async (req: Request, res: Response) => {
     await db.update(refresh_token).set({ isRevoked: true }).where(eq(refresh_token.userId, user.id))
     //  await db.delete(refresh_token).where(eq(refresh_token.userId,user.id)).returning()
     console.log("Refresh token update successfully")
-    res.clearCookie('accessToken')
-    res.clearCookie('refreshToken')
+    
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const
+    };
+
+    res.clearCookie('accessToken', cookieOptions)
+    res.clearCookie('refreshToken', cookieOptions)
     return sendSuccessResponse(res, null, 'Logout Successfully!', 200)
 }
