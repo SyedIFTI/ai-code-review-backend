@@ -130,18 +130,21 @@ export const RefreshToken = async (req: Request, res: Response) => {
             token_hash: hashNewRefreshToken,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         })
-        res.cookie('accessToken', newAccessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 15 * 60 * 1000
-        })
-        res.cookie('refreshToken', newRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
+      const isProduction = process.env.NODE_ENV === 'production';
+
+res.cookie('accessToken', newAccessToken, {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+  maxAge: 15 * 60 * 1000
+});
+
+res.cookie('refreshToken', newRefreshToken, {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000
+});
         return sendSuccessResponse(res, null, 'Token refreshed successfully', 200)
 
     } catch (error: any) {
